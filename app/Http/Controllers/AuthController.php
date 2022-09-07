@@ -126,22 +126,35 @@ class AuthController extends Controller
         
         $validator = Validator::make($request->all(), [
             'fullname' => 'required',
-            'email' => 'required|string|email|max:100|unique:users',
-            'newPassword' => 'string|min:5'
+            'email' => 'required|string|email|max:100|unique:users,email,'.Auth::User()->id,
+            'newPassword' => 'string|min:6|nullable',
         ]);
+
+        if($validator->fails()){
+            return response()->json($validator->errors()->toJson(),400);
+        }
+        
         $user = User::find(Auth::User()->id);
        $user->fullname = $request->fullname;
        $user->email = $request->email;
+        if(!empty($request->oldPassword)){
 
-      $truePass =  Hash::check($request->oldPassword, Auth::user()->password);
-        if($truePass){
-            $user->password = Hash::make($request->newPassword);
+            $truePass =  Hash::check($request->oldPassword, Auth::user()->password);
+    
+            if($truePass){
+                $user->password = Hash::make($request->newPassword);
+            }else{
+                return response()->json([
+                    'message' => 'Old password is not valid',
+                    'user' => $user
+                ], 400); 
+            }
         }
+      
         
         if($request->file('image')){
                            
             $image = $request->file('image');
-
             // SAVE IMAGE
             $image_path_name1 = time().$image->getClientOriginalName();
             Storage::disk('users')->put($image_path_name1, \File::get($image));
@@ -151,7 +164,7 @@ class AuthController extends Controller
         $user->save();
 
         return response()->json([
-            'message' => 'NA DE NA MI BRO',
+            'message' => 'User updated',
             'user' => $user
         ], 201); 
     }

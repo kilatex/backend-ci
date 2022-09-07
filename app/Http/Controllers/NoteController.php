@@ -200,5 +200,15 @@ class NoteController extends Controller
         return response()->json($data);
     }
 
+
+    public function search(string $content){
+        $texto = trim($content);
+        $notes = Note::Where('string','LIKE', '%'.$texto.'%')
+        ->orWhere('title','LIKE', '%'.$texto.'%')
+        ->where([ ['user_id', '=', auth()->user()->id]])->get();
+
+        return response()->json($notes);
+
+    }
     
 }

@@ -6,6 +6,7 @@ use App\Models\Label;
 use App\Models\Labelnote;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class LabelController extends Controller
@@ -24,7 +25,7 @@ class LabelController extends Controller
     public function create(Request $request){
 
         $validator =  Validator::make($request->all(), [
-            'content' => 'string|required|unique:labels',
+            'content' => 'string|required',
         ]);
 
         if($validator->fails()){
@@ -95,59 +96,56 @@ class LabelController extends Controller
         return response()->json($res);
     }
     
-    public function searchByLabel(Label $label){
-        $search = Labelnote::where('label_id', $label->id)->with('note')->get(); 
-        if($search){
-            $data = array(
-                'status' => 'success',
-                'code' => '200',
-                'message' => 'NOTES SEARCHED',
-                'search' => $search
-            );
-        }else{
-            $data = array(
-                'status' => 'error',
-                'code' => '400',
-                'message' => 'ERROR TO SEARCH BY LAVEL',
-                'search' => $search
-            ); 
-        }
-        return response()->json($data);
+    public function searchByLabel(int $id){
+        $notes = DB::table('notes')
+            ->join('labelnotes', 'labelnotes.note_id', '=', 'notes.id')
+            ->where('labelnotes.label_id', $id)
+            ->get();
+    
+        
+        return response()->json($notes);
 
 
     }
 
-    public function setLabeltoNote(Request $request){
-        $validator =  Validator::make($request->all(), [
-            'note_id' => 'required',
-            'label_id' => 'required'
-        ]);
-        
-        if($validator->fails()){
-            $data = array(
-                'status' => 'error',
-                'code' => '400',
-                'message' => 'Error to create note',
-                'error' => $validator->errors()
-            );
-            return response()->json($data, 500);
+    public function setLabelstoNote(Request $request, int $note_id){
+        $json = $request->input('json',null);
+        $params = json_decode($json);
+        $params_array = json_decode($json,true);
 
-        } 
+        for ($i=0; $i < count($params_array); $i++) { 
+            $labelNote = new Labelnote();
+            $labelNote->label_id =  $params_array[$i];
+            $labelNote->note_id = $note_id;
 
-        $labelNote = new Labelnote();
-        $labelNote->note_id = $request->note_id;
-        $labelNote->label_id = $request->label_id;
+            $labelNote->save();
 
-        $labelNote->save();
+        }
+               
+
         $data = array(
             'status' => 'success',
             'code' => '400',
             'message' => 'labelNote',
-            'labelNote' => $labelNote
+            'labelNote' => $params_array
         ); 
     
         return response()->json($data);
     }
 
+
+    public function getLabelsByNote(int $note_id){
+        
+        $labelsNote = Labelnote::where('note_id',$note_id)->with('label')->get();
+        
+        $data = array(
+            'status' => 'success',
+            'code' => '400',
+            'message' => 'labelNote',
+            'labelsNote' => $labelsNote
+        ); 
+    
+        return response()->json($data);
+    }
 
 }

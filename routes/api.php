@@ -51,11 +51,13 @@ Route::group([
     Route::get('/restore/{note}', [NoteController::class,'restore'] );
     Route::get('/copy/{note}', [NoteController::class,'copy'] );
     Route::post('/note', [NoteController::class,'create'] );
+    Route::get('/note-search/{content}', [NoteController::class,'search'] );
 
     Route::post('/label-create', [LabelController::class,'create'] );
     Route::get('/label', [LabelController::class,'index'] );
     Route::get('/notes-by-label/{label}', [LabelController::class,'searchByLabel'] );
     Route::post('/label/{label}', [LabelController::class,'index'] );
-    Route::post('/set-label', [LabelController::class,'setLabeltoNote'] );
+    Route::post('/set-label/{note_id}', [LabelController::class,'setLabelstoNote'] );
+    Route::get('/labels-by-note/{note_id}', [LabelController::class,'getLabelsByNote'] );
     Route::delete('/label/{labelD}', [LabelController::class,'destroy'] );
 });

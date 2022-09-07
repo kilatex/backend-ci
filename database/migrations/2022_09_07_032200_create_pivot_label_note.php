@@ -13,7 +13,7 @@ class CreatePivotLableNote extends Migration
      */
     public function up()
     {
-        Schema::create('lablenotes', function (Blueprint $table) {
+        Schema::create('labelnotes', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
             $table->unsignedBigInteger('label_id')->nullable();
