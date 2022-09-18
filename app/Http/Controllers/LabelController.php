@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Label;
 use App\Models\Labelnote;
+use App\Models\Note;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,11 +29,27 @@ class LabelController extends Controller
             'content' => 'string|required',
         ]);
 
+        $id = auth()->user()->id;
+        $exist = Label::where([
+            ['user_id', '=', $id],
+            ['content', 'LIKE', $request->content]
+        ])->first();
+
+      if($exist){
+            $data = array(
+                'status' => 'error',
+                'code' => '400',
+                'message' => 'Error to create label',
+                'error' => 'label already exists'
+            );
+            return response()->json($data);
+      }
+
         if($validator->fails()){
             $data = array(
                 'status' => 'error',
                 'code' => '400',
-                'message' => 'Error to create note',
+                'message' => 'Error to create label',
                 'error' => $validator->errors()
             );
             return response()->json($data, 500);
@@ -97,10 +114,9 @@ class LabelController extends Controller
     }
     
     public function searchByLabel(int $id){
-        $notes = DB::table('notes')
-            ->join('labelnotes', 'labelnotes.note_id', '=', 'notes.id')
-            ->where('labelnotes.label_id', $id)
-            ->get();
+
+        $notes = Label::with('notes')->where('id',$id)->get();
+
     
         
         return response()->json($notes);
@@ -108,27 +124,37 @@ class LabelController extends Controller
 
     }
 
-    public function setLabelstoNote(Request $request, int $note_id){
-        $json = $request->input('json',null);
-        $params = json_decode($json);
-        $params_array = json_decode($json,true);
+    public function setLabelToNote(Request $request, int $note_id){
+        
+        $label_id = $request->label_id;
+        $query = Labelnote::where([
+            ['label_id', '=', $label_id],
+            ['note_id', '=', $note_id]       
+        ])->first();
 
-        for ($i=0; $i < count($params_array); $i++) { 
-            $labelNote = new Labelnote();
-            $labelNote->label_id =  $params_array[$i];
-            $labelNote->note_id = $note_id;
+        if($query){
+            $data = array(
+                'status' => 'error',
+                'code' => '400',
+                'message' => 'Label exists in this note',
+                'labelNote' => $query
+            ); 
+    
+        }else{
+            $labelnote = new Labelnote();
+            $labelnote->note_id =$note_id;
+            $labelnote->label_id =$label_id;
+            $labelnote->save();
 
-            $labelNote->save();
-
+            $data = array(
+                'status' => 'success',
+                'code' => '200',
+                'message' => 'labelNote',
+                'labelNote' => $query
+            ); 
         }
-               
+             
 
-        $data = array(
-            'status' => 'success',
-            'code' => '400',
-            'message' => 'labelNote',
-            'labelNote' => $params_array
-        ); 
     
         return response()->json($data);
     }
@@ -149,3 +175,10 @@ class LabelController extends Controller
     }
 
 }
+
+
+/*
+
+SELECT * from notes inner join labels ON labels.user_id = notes.user_id
+inner join labelnotes ON labelnotes.label_id = labels.id
+*/

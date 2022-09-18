@@ -18,13 +18,19 @@ class Note extends Model
      */
     protected $fillable = [
         'title',
-        'content',
+        'string',
+        'html',
         'user_id'
     ];
     
     public function user(){
         return $this->belongsTo('App\Models\User','user_id');
     }
+
+    public function labels(){
+        return $this->belongsToMany('App\Models\Label', 'labelnotes');
+    }
+
 
     use HasFactory;
 }

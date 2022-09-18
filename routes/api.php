@@ -57,7 +57,7 @@ Route::group([
     Route::get('/label', [LabelController::class,'index'] );
     Route::get('/notes-by-label/{label}', [LabelController::class,'searchByLabel'] );
     Route::post('/label/{label}', [LabelController::class,'index'] );
-    Route::post('/set-label/{note_id}', [LabelController::class,'setLabelstoNote'] );
+    Route::post('/set-label/{note_id}', [LabelController::class,'setLabelToNote'] );
     Route::get('/labels-by-note/{note_id}', [LabelController::class,'getLabelsByNote'] );
     Route::delete('/label/{labelD}', [LabelController::class,'destroy'] );
 });

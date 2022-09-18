@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Labelnote;
 use Illuminate\Http\Request;
 use  App\Models\Note;
 use  App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -16,7 +18,9 @@ class NoteController extends Controller
     }
 
     public function index(){
-        $notes = Note::where('user_id',auth()->user()->id)->get(); 
+  
+        $notes = Note::with('labels')->where('user_id',auth()->user()->id)->get();
+
         return response()->json($notes);
     }
 
